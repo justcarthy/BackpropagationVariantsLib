@@ -48,6 +48,6 @@ N = training_data.shape[0]
 
 #training_data = create_batches(batch_size, training_data)
 
-nn = network.neural_network((3, 2, 2, 1))
+nn = network.neural_network((3, 2, 2, 2))
 nn.train_network(dummy_data, dummy_labels, 20, 0.05)
 nn.test_network(dummy_data, dummy_labels)

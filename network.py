@@ -63,44 +63,45 @@ class neural_network:
     def train_network(self, data, labels, epochs, learning_rate):
         for e in range(epochs):
             #iterate through data random
-            error = 0.0
+            network_error = 0.0
+            error = None
             randomRange = list(range(data.shape[0]))
             random.shuffle(randomRange)
             for i in randomRange:
-                print(data[i])
                 output = self.forward_propogate(data[i])
-                print (output)
-                error = output - labels[i];
-                if(is_error(output, labels[i])):
+                error = output - labels[i]
+                if(self.is_error(output, labels[i])):
                     self.back_propogate(error)
                     self.update_weights(learning_rate)
                     mse = (np.sum(np.square(error)))/labels.shape[1]
-                    error += mse
-            print('epoch: {} error is {}'.format(e, error/data.shape[0]))
+                    network_error += mse
+            print('epoch: {} error is {}'.format(e, network_error/data.shape[0]))
 
 
-    def is_error(output, actual):
+    def is_error(self, output, actual):
         if (np.argmax(output) != np.argmax(actual)):
             return True
         else:
             return False
 
     def forward_propogate(self, data):
+        
         self.layers[0].inputs = data
         for j in range(self.num_layers-1):
             self.layers[j+1].inputs = self.layers[j].feed_forward()
-        return self.layers[-1].outputs
+        
+        return self.layers[-1].feed_forward()
 
     def back_propogate(self, error):
         self.layers[-1].error_signal = (error)
-        for j in range(self.num_layers-1, 0, -1):
+        for j in range(self.num_layers-2, 0, -1):
             weights = self.layers[j].weights
             self.layers[j].error_signal = weights.dot(self.layers[j+1].error_signal)*self.layers[j].error_signal
 
     def update_weights(self, learning_rate):
         for i in range(self.num_layers-1):
-            gradient_update = (-learning_rate)*self.layer[i+1].error_signal.dot(self.layer[i].output)
-            self.layers[j].weights += gradient_update
+            gradient_update = (-learning_rate)*self.layers[i+1].error_signal.dot(self.layers[i].output)
+            self.layers[i].weights += gradient_update
 
     def test_network(self, data, labels):
         randomRange = list(range(data.shape[0]))
@@ -116,4 +117,7 @@ class neural_network:
             actual= np.argmax(labels[i])
             if(value == actual):
                 correct+=1
-        #print(correct/data.shape[0])
+
+
+
+
