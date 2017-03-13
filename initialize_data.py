@@ -1,5 +1,4 @@
 '''
-
 This is the opening class of the neural network which performs these tasks
 - Reads the input data from their respective files (X)
 - Randomly shuffles the list (X)
@@ -33,7 +32,7 @@ dummy_labels = np.array(dummy_labels)
 training_data = []
 training_labels = []
 #batch_size = 100
-label_count = 0;
+label_count = 0
 for x, file in enumerate(training_files):
     temp_data = np.genfromtxt(training_files[0], delimiter=',')
     N = temp_data.shape[0]
@@ -41,13 +40,17 @@ for x, file in enumerate(training_files):
     label_row = np.zeros(10)
     label_row[x] = 1
     training_labels.extend(np.full((N,10), label_row))
-
+    
+training_labels = np.array(training_labels)
 training_data = np.array(training_data)
-np.random.shuffle(training_data)
 N = training_data.shape[0]
 
 #training_data = create_batches(batch_size, training_data)
 
 nn = network.neural_network((3, 2, 2, 2))
-nn.train_network(dummy_data, dummy_labels, 20, 0.05)
+nn.train_network(dummy_data, dummy_labels, 1000, 0.1)
 nn.test_network(dummy_data, dummy_labels)
+
+# nn = network.neural_network((64, 32, 16, 10))
+# nn.train_network(training_data, training_labels, 1000, 0.05)
+# nn.test_network(training_data, training_labels)

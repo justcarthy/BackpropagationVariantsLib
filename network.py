@@ -10,7 +10,7 @@ TODO change to support both minibatches and online
 """
 def sigmoid(inputs, derivative=False):
     if not derivative:
-        return 1 / (1 + np.exp(-inputs))
+        return 1 / (1 + np.exp(-1*inputs))
     else:
         return sigmoid(inputs)*(1 - sigmoid(inputs))
 
@@ -33,16 +33,18 @@ class network_layer:
         self.error_signal = None #derivative of sigmoid functions
         #input layers do not need their inputs initialized
         if not b_output:
-            self.weights = np.random.normal(size = layer_shape, scale=1.0)
+            self.weights = np.random.uniform(-0.75, 0.75,layer_shape)
             self.weight_updates = np.zeros(layer_shape)
         if not b_output and not b_input:
             self.error_signal = np.zeros(layer_shape[0])
+        print(self.weights, self.error_signal)
 
     def feed_forward(self):
         if self.input_layer:
             self.output = self.inputs.dot(self.weights)
         elif self.output_layer:
             self.output = sigmoid(self.inputs)
+            self.error_signal = (sigmoid(self.inputs, derivative=True))
         else:
             self.output = (sigmoid(self.inputs)).dot(self.weights)
             self.error_signal = (sigmoid(self.inputs, derivative=True))
@@ -63,18 +65,19 @@ class neural_network:
     def train_network(self, data, labels, epochs, learning_rate):
         for e in range(epochs):
             #iterate through data random
-            network_error = 0.0
+            total_error = 0.0
             error = None
+            network_error = 0.0
             randomRange = list(range(data.shape[0]))
             random.shuffle(randomRange)
             for i in randomRange:
                 output = self.forward_propogate(data[i])
                 error = output - labels[i]
-                if(self.is_error(output, labels[i])):
-                    self.back_propogate(error)
-                    self.update_weights(learning_rate)
-                    mse = (np.sum(np.square(error)))/labels.shape[1]
-                    network_error += mse
+                #if(self.is_error(output, labels[i])):
+                self.back_propogate(error)
+                self.update_weights(learning_rate)
+                total_error = (np.sum(0.5*(np.square(error))))
+                network_error += total_error
             print('epoch: {} error is {}'.format(e, network_error/data.shape[0]))
 
 
@@ -93,7 +96,7 @@ class neural_network:
         return self.layers[-1].feed_forward()
 
     def back_propogate(self, error):
-        self.layers[-1].error_signal = (error)
+        self.layers[-1].error_signal = (error)*self.layers[-1].error_signal
         for j in range(self.num_layers-2, 0, -1):
             weights = self.layers[j].weights
             self.layers[j].error_signal = weights.dot(self.layers[j+1].error_signal)*self.layers[j].error_signal
@@ -110,13 +113,14 @@ class neural_network:
         wrong = 0
         for i in randomRange:
             #forward prop
-            for j in range(self.num_layers-1):
-                self.layers[j+1].inputs = self.layers[j].feed_forward()
-            output = self.layers[-1].outputs
+            output = self.forward_propogate(data[i])
             value = np.argmax(output)
             actual= np.argmax(labels[i])
+            print('output:{} ..... actual:{}'.format(value, actual))
             if(value == actual):
                 correct+=1
+
+        print('{} out of {}'.format(correct, data.shape[0]))
 
 
 
