@@ -29,6 +29,7 @@ class network_layer:
         self.inputs = None
         self.weights = None
         self.outputs = None
+        self.activated = None
         self.weight_updates = None #
         self.error_signal = None #derivative of sigmoid functions
         #input layers do not need their inputs initialized
@@ -37,17 +38,19 @@ class network_layer:
             self.weight_updates = np.zeros(layer_shape)
         if not b_output and not b_input:
             self.error_signal = np.zeros(layer_shape[0])
-        print(self.weights, self.error_signal)
+
 
     def feed_forward(self):
         if self.input_layer:
+            self.activated = self.inputs
             self.output = self.inputs.dot(self.weights)
         elif self.output_layer:
-            self.output = sigmoid(self.inputs)
+            self.output = self.activated = sigmoid(self.inputs)
             self.error_signal = (sigmoid(self.inputs, derivative=True))
         else:
+            self.activated = sigmoid(self.inputs)
             self.output = (sigmoid(self.inputs)).dot(self.weights)
-            self.error_signal = (sigmoid(self.inputs, derivative=True))
+            self.error_signal = (sigmoid(self.inputs, derivative=True))[:,None]
         return self.output
 
 class neural_network:
@@ -96,14 +99,14 @@ class neural_network:
         return self.layers[-1].feed_forward()
 
     def back_propogate(self, error):
-        self.layers[-1].error_signal = (error)*self.layers[-1].error_signal
+        self.layers[-1].error_signal = ((error)*self.layers[-1].error_signal)[:,None]
         for j in range(self.num_layers-2, 0, -1):
             weights = self.layers[j].weights
-            self.layers[j].error_signal = weights.dot(self.layers[j+1].error_signal)*self.layers[j].error_signal
+            self.layers[j].error_signal = (weights.dot(self.layers[j+1].error_signal))*self.layers[j].error_signal
 
     def update_weights(self, learning_rate):
         for i in range(self.num_layers-1):
-            gradient_update = (-learning_rate)*self.layers[i+1].error_signal.dot(self.layers[i].output)
+            gradient_update = (-learning_rate)*(self.layers[i+1].error_signal).dot((self.layers[i].activated)[None,:]).T
             self.layers[i].weights += gradient_update
 
     def test_network(self, data, labels):
@@ -116,7 +119,7 @@ class neural_network:
             output = self.forward_propogate(data[i])
             value = np.argmax(output)
             actual= np.argmax(labels[i])
-            print('output:{} ..... actual:{}'.format(value, actual))
+            #print('output:{} ..... actual:{}'.format(value, actual))
             if(value == actual):
                 correct+=1
 

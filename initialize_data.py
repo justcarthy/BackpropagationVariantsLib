@@ -47,10 +47,6 @@ N = training_data.shape[0]
 
 #training_data = create_batches(batch_size, training_data)
 
-nn = network.neural_network((3, 2, 2, 2))
-nn.train_network(dummy_data, dummy_labels, 1000, 0.1)
-nn.test_network(dummy_data, dummy_labels)
-
-# nn = network.neural_network((64, 32, 16, 10))
-# nn.train_network(training_data, training_labels, 1000, 0.05)
-# nn.test_network(training_data, training_labels)
+nn = network.neural_network((64, 32, 16, 10))
+nn.train_network(training_data, training_labels, 10000, 0.4)
+nn.test_network(training_data, training_labels)
