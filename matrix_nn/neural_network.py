@@ -81,7 +81,7 @@ class Layer:
             return self.Z.dot(self.W)
 
 
-class MLP:
+class multi_layer_perceptron:
     def __init__(self, layer_config, minibatch_size=100):
         self.layers = []
         self.num_layers = len(layer_config)
@@ -127,7 +127,8 @@ class MLP:
     def backpropagate(self, yhat, labels):
         self.layers[-1].D = (yhat - labels).T
         for i in range(self.num_layers-2, 0, -1):
-            # We do not calculate deltas for the bias values
+            # We do not calculate deltas for the
+            #  bias values
             W_nobias = self.layers[i].W[0:-1, :]
 
             self.layers[i].D = W_nobias.dot(self.layers[i+1].D) * \
@@ -144,7 +145,7 @@ class MLP:
         N_train = len(train_labels)*len(train_labels[0])
         N_test = len(test_labels)*len(test_labels[0])
 
-        print "Training for {0} epochs...".format(num_epochs)
+        #print "Training for {0} epochs...".format(num_epochs)
         for t in range(0, num_epochs):
             out_str = "[{0:4d}] ".format(t)
 
@@ -160,7 +161,7 @@ class MLP:
                     yhat = np.argmax(output, axis=1)
                     errs += np.sum(1-b_labels[np.arange(len(b_labels)), yhat])
 
-                out_str = "{0} Training error: {1:.5f}".format(out_str,
+                #out_str = "{0} Training error: {1:.5f}".format(out_str,
                                                            float(errs)/N_train)
 
             if eval_test:
@@ -170,7 +171,6 @@ class MLP:
                     yhat = np.argmax(output, axis=1)
                     errs += np.sum(1-b_labels[np.arange(len(b_labels)), yhat])
 
-                out_str = "{0} Test error: {1:.5f}".format(out_str,
-                                                       float(errs)/N_test)
+                out_str = "{0} Test error: {1:.5f}".format(out_str, float(errs)/N_test)
 
             print out_str
