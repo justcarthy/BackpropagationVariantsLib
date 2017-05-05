@@ -6,79 +6,91 @@ This is the opening class of the neural network which performs these tasks
 - then procedes to create the neural network based on its specified layer and
     hidden node count
 '''
+import itertools
+
 import numpy as np
+import csv
+from sklearn import datasets
 import network
 
-def create_batches(size, data):
-    N = data.shape[0]
-    i = 0
-    batched_data = []
-    while i + size <= N:
-        batched_data.append(data[i:i+size, :])
-        i += size
-    return np.array(batched_data)
+def get_training_testing(data, labels):
+    withheld_amt = int(.15 * len(data))
+    testing_data = []
+    testing_labels = []
+    training_data = np.array(data, dtype='float32')
+    training_labels = np.array(labels,dtype='float32')
+    for i in range(withheld_amt):
+        index = np.random.randint(len(training_data))
+        testing_data.append(training_data[index])
+        testing_labels.append(training_labels[index])
+        training_data = np.delete(training_data, index, axis=0)
+        training_labels = np.delete(training_labels, index, axis=0)
+    testing_data = np.array(testing_data)
+    testing_labels = np.array(testing_labels)
+    return training_data, training_labels, testing_data, testing_labels
 
-def get_data_labels(files):
-    data = []
-    labels = []
-    #batch_size = 100
-    label_count = 0
-    for x, file in enumerate(files):
-        temp_data = np.genfromtxt(files[0], delimiter=',')
-        N = temp_data.shape[0]
-        data.extend(temp_data)
-        label_row = np.zeros(10)
-        label_row[x] = 1
-        labels.extend(np.full((N,10), label_row))
-
-    labels = np.array(labels)
-    data = np.array(data)
-    return data, labels
-
-###use testing data
-
-
-training_files =['data/digit_train_0.txt', 'data/digit_train_1.txt',
-'data/digit_train_2.txt', 'data/digit_train_3.txt',
-'data/digit_train_4.txt', 'data/digit_train_5.txt',
-'data/digit_train_6.txt', 'data/digit_train_7.txt',
-'data/digit_train_8.txt', 'data/digit_train_9.txt']
-
-testing_files = ['data/digit_test_0.txt', 'data/digit_test_1.txt',
-'data/digit_test_2.txt', 'data/digit_test_3.txt',
-'data/digit_test_4.txt', 'data/digit_test_5.txt',
-'data/digit_test_6.txt', 'data/digit_test_7.txt',
-'data/digit_test_8.txt', 'data/digit_test_9.txt']
-
-training_data, training_labels = get_data_labels(training_files)
-testing_data, testing_labels = get_data_labels(testing_files)
-
-dummy_data = [[0, 0, 0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
-dummy_labels  = [[1,0],[0,1],[0,1],[1,0],[0,1],[1,0],[1,0],[0,1]]
-dummy_data = np.array(dummy_data)
-dummy_labels = np.array(dummy_labels)
-N = training_data.shape[0]
-
-#training_data = create_batches(batch_size, training_data)
-
-nn = network.neural_network((64, 32, 16, 10))
-nn.train_network(training_data, training_labels, 5000, 0.1, 0.7)
-nn.test_network(testing_data, testing_labels)
-
-# for i in range(20, 64):
-#     for j in range(1, 64):
-#         if(i == 0):
-#             nn = network.neural_network((64, j, 10))
-#         else:
-#             nn = network.neural_network((64, j, i, 10))
-#         nn.train_network(training_data, training_labels, 1000, 0.1, 0.7)
-#         nn.test_network(training_data, training_labels)
-
-# for i in range(1, 20):
-#     #for j in range(1, 64):
-#     #if(i == 0):
-#     nn = network.neural_network((3, i, 2))
-#     # else:
-#     #     nn = network.neural_network((64, j, i, 10))
-#     nn.train_network(dummy_data, dummy_labels, 1000, 0.05, 0.05)
-#     nn.test_network(dummy_data, dummy_labels)
+'''iris data'''
+# iris = datasets.load_iris()
+# x = iris.data
+# temp = iris.target
+# y = []
+# for label in temp:
+#     if(label == 0):
+#         y.append([0,0,1])
+#     elif (label == 1):  
+#         y.append([0,1,0])
+#     else:
+#         y.append([1,0,0])
+# training_data, training_labels, testing_data, testing_labels = get_training_testing(x, y)
+'''breast cancer data'''
+with open('data/wdbc.data', 'rb') as f:
+    reader = csv.reader(f)
+    wdbc = list(reader)
+wdbc_temp = [row[1] for row in wdbc]
+wdbc = [row[2:] for row in wdbc]
+wdbc_labels = []
+for label in wdbc_temp:
+    if(label == 'M'):
+        wdbc_labels.append([0,1])
+    else:
+        wdbc_labels.append([1,0])
+training_data, training_labels, testing_data, testing_labels = get_training_testing(wdbc, wdbc_labels)
+'''wine data'''
+# with open('data/wine.data', 'rb') as f:
+#     reader = csv.reader(f)
+#     wine = list(reader)
+# wine_temp = [row[0] for row in wine]
+# wine = [row[1:] for row in wine]
+# wine_labels = []
+# for label in wine_temp:
+#     if(label == 0):
+#         wine_labels.append([0,0,1])
+#     elif(label == 1):
+#         wine_labels.append([0,1,0])
+#     else:
+#         wine_labels.append([1,0,0])
+# training_data, training_labels, testing_data, testing_labels = get_training_testing(wine, wine_labels)
+'''create combination of weights'''
+g_learn_rates = [0.01, 0.1, 0.4]
+q_learn_rates = [0.1, 0.9, 1.5]
+momentum = [0.01, 0.05, 0.1]
+batch = [training_data.shape[0]/4, training_data.shape[0]/2, training_data.shape[0]]
+combinations = itertools.product(q_learn_rates, g_learn_rates, momentum, batch)
+for run in combinations:
+    result = []
+    test = []
+    ''' nn represents the quickprop learning rates, the gradient update learning rates,
+        momentum, and delta bar delta variables, as the args param. I know this is bad'''
+    ''' gradient_update(learning_rt, momentum)
+        quickprop_update(q_learning_rt, g_learning_rt, momentum)
+        r_prop()
+        delta_bar_update()'''
+    nn = network.neural_network((training_data.shape[1], 20, 20, training_labels.shape[1]), run[3])#training_data.shape[0]/2)
+    result = nn.train_network(training_data, training_labels, 3000, nn.rprop_update)
+    test = nn.test_network(testing_data, testing_labels)
+    with file('res.txt', 'a') as outfile:
+            for item in result:
+                outfile.write("{}\n".format(item))
+    with file('test.txt', 'a') as outfile:
+            for item in test:
+                outfile.write("{}\n".format(item))
